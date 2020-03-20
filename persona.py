@@ -277,7 +277,7 @@ class persona:
                 total_num=total_num+self.Left_t[t+1].size(0)
             if self.mode=="train":
                 sum_err.backward()
-            return sum_err.data[0], total_num
+            return sum_err.data, total_num
 
     def test(self):
         if self.mode=="test":
