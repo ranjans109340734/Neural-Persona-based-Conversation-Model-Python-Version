@@ -8,7 +8,7 @@ class data:
     
     def __init__(self, params):
         self.params=params
-        self.EOT=self.params.vocab_target-1
+        self.EOT=self.params.vocab_target-1 #vocab_target=25010
         self.EOS=self.params.vocab_target-2
         self.beta=self.params.vocab_target-3
 
