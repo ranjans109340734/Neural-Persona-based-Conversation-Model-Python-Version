@@ -178,10 +178,12 @@ class persona:
         self.lstm_target =lstm_target_(self.params)
         self.lstm_source.apply(self.weights_init)
         self.lstm_target.apply(self.weights_init)
+        
         embed=list(self.lstm_source.parameters())[0]
         embed[self.params.vocab_dummy].data.fill_(0)
         embed=list(self.lstm_target.parameters())[0]
         embed[self.params.vocab_dummy].data.fill_(0)
+        
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
             self.lstm_target=self.lstm_target.cuda()
@@ -193,6 +195,7 @@ class persona:
         if self.output!="":
             with open(self.output,"w") as selfoutput:
                 selfoutput.write("")
+                
         if self.params.PersonaMode:
             print("training in persona mode")
         else:
