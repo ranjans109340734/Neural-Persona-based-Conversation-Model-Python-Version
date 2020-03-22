@@ -303,6 +303,7 @@ class persona:
         batch_n=0
         while End==0:
             End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseeID=self.Data.read_train(open_train_file,batch_n)
+            # End: 1, if one of the line in the batch is empty
             # Word_s and Word_t: tensors, batch_size*max_length
             # Padding_s, Paddint_t: tensors, batch_size*max_length
             # Mask_s, Mask_t: dicts, max_length
@@ -316,16 +317,19 @@ class persona:
             if len(self.Word_s)==0 or End==1:
                 break
             if (self.Word_s.size(1)<self.params.source_max_length and self.Word_t.size(1)<self.params.target_max_length):
+                # source_max_length=50, target_max_length=50
                 self.mode="test"
-                self.Word_s=Variable(self.Word_s)
+                self.Word_s=Variable(self.Word_s)       #variable wrap Tensor, provides a method to perform backpropagation
                 self.Word_t=Variable(self.Word_t)
                 self.Padding_s=Variable(self.Padding_s)
                 self.SpeakerID=Variable(self.SpeakerID)
+
                 if self.params.use_GPU:
                     self.Word_s=self.Word_s.cuda()
                     self.Word_t=self.Word_t.cuda()
                     self.Padding_s=self.Padding_s.cuda()
                     self.SpeakerID=self.SpeakerID.cuda()
+                    
                 sum_err,total_num=self.model_forward()
                 sum_err_all+=sum_err
                 total_num_all+=total_num
