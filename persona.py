@@ -192,16 +192,17 @@ class persona:
         embed=list(self.lstm_target.parameters())[0]    #embedding from lstm_target, 25010*512
         embed[self.params.vocab_dummy].data.fill_(0)
         
-        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy].data)
-        
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
             self.lstm_target=self.lstm_target.cuda()
         self.softmax=softmax_(self.params)
         self.softmax.apply(self.weights_init)
+        
         if self.params.use_GPU:
             self.softmax=self.softmax.cuda()
-        self.output=self.params.output_file
+        self.output=self.params.output_file     # save/testing/log or save/testing/non_persona/log
+        
+        # Creating an output file if it doesn't exist
         if self.output!="":
             with open(self.output,"w") as selfoutput:
                 selfoutput.write("")
@@ -210,6 +211,7 @@ class persona:
             print("training in persona mode")
         else:
             print("training in non persona mode")
+            
         self.ReadDict()
 
 
@@ -222,7 +224,7 @@ class persona:
     
     def ReadDict(self):
         self.dict={}
-        dictionary=open(self.params.train_path+self.params.dictPath,"r").readlines()
+        dictionary=open(self.params.train_path+self.params.dictPath,"r").readlines()        #data/testing/vocabulary
         for index in range(len(dictionary)):
             line=dictionary[index].strip()
             self.dict[index]=line
