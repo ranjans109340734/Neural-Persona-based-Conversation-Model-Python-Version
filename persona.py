@@ -188,8 +188,10 @@ class persona:
         self.lstm_target.apply(self.weights_init)     # apply: Applies fn recursively to every submodule (as returned by .children()) as well as self.
         
         print(len(list(self.lstm_source.parameters())))
-        print(list(self.lstm_source.parameters())[0].size())
+        for i in range(0,len(list(self.lstm_source.parameters()))):
+            print(list(self.lstm_source.parameters())[i].size())
         print(list(self.lstm_source.parameters()))
+        
         embed=list(self.lstm_source.parameters())[0]
         embed[self.params.vocab_dummy].data.fill_(0)
         embed=list(self.lstm_target.parameters())[0]
