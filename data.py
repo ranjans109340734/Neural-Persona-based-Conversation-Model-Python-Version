@@ -31,28 +31,38 @@ class data:
                 count=count+1
         return tensor
     
+    # Input: Sequences is a dict of tensors
+    # Output: Words and Padding: tensors, batch_size*max_length
+    #         Mask and Left: dicts, max_length
+    # max_length: length of longest tensor in Sequences
     def get_batch(self, Sequences,isSource):
         max_length=-100
-        for i in range(len(Sequences)):
+        
+        # Finding the length of longest tensor in Sequences
+        for i in range(len(Sequences)):     #len(Sequences) = batch_size = 256
             if Sequences[i].size(1)>max_length:
                 max_length=Sequences[i].size(1)
-        Words=np.ones((len(Sequences),max_length))
+        
+        Words=np.ones((len(Sequences),max_length))      #batch_size*max_length
         Words.fill(self.params.vocab_dummy)
-        Padding=np.zeros((len(Sequences),max_length))
+        Padding=np.zeros((len(Sequences),max_length))      #batch_size*max_length
+        
         for i in range(len(Sequences)):
             if isSource:
-                Words[i,max_length-Sequences[i].size(1):max_length] = Sequences[i]
-                Padding[i,max_length-Sequences[i].size(1):max_length].fill(1)
+                Words[i,max_length-Sequences[i].size(1):max_length] = Sequences[i]      #first few elements are vocab_dummy, others are Sequences[i]
+                Padding[i,max_length-Sequences[i].size(1):max_length].fill(1)       #first few elements are 0, others are 1
             else:
-                Words[i,:Sequences[i].size(1)] = Sequences[i]
-                Padding[i,:Sequences[i].size(1)].fill(1)
+                Words[i,:Sequences[i].size(1)] = Sequences[i]       #first few elements are Sequences[i], last few are vocab_dummy
+                Padding[i,:Sequences[i].size(1)].fill(1)       #first few elements are 1, last few are 0
         Mask={}
         Left={}
-        for i in range(Words.shape[1]):
-            Mask[i]=torch.LongTensor((Padding[:,i] == 0).nonzero()[0].tolist())
-            Left[i]=torch.LongTensor((Padding[:,i] == 1).nonzero()[0].tolist())
-        Words=torch.from_numpy(Words).long()
-        Padding=torch.from_numpy(Padding).float()
+        
+        for i in range(Words.shape[1]):     #max_length
+            Mask[i]=torch.LongTensor((Padding[:,i] == 0).nonzero()[0].tolist())     #Getting indices of 0 in ith column of Padding
+            Left[i]=torch.LongTensor((Padding[:,i] == 1).nonzero()[0].tolist())     #Getting indices of 1 in ith column of Padding
+            
+        Words=torch.from_numpy(Words).long()        #converting Words into torch form
+        Padding=torch.from_numpy(Padding).float()        #converting Words into torch form
         return Words,Mask,Left,Padding
     
     def read_train(self, open_train_file, batch_n):
