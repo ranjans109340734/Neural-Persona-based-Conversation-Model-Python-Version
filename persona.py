@@ -51,11 +51,12 @@ class softattention(nn.Module):
 class lstm_source_(nn.Module):
     
     def __init__(self,params):
-        super(lstm_source_, self).__init__()
+        super(lstm_source_, self).__init__()     #to declare the class as a Torch Module class
         self.params=params
-        self.sembedding=nn.Embedding(self.params.vocab_source,self.params.dimension,padding_idx=self.params.vocab_dummy)
+        self.sembedding=nn.Embedding(self.params.vocab_source,self.params.dimension,padding_idx=self.params.vocab_dummy) 
+        #vocab_source=25010, vocab_dummy=25006, dimension=512
         self.sdropout=nn.Dropout(self.params.dropout)
-        for num in range(1,self.params.layers*2+1):
+        for num in range(1,self.params.layers*2+1):  #4 layers; 8 'slinear' attributes   of lstm_source_
             setattr(self,"slinear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
 
     def forward(self,inputs):
@@ -92,14 +93,21 @@ class lstm_target_(nn.Module):
         super(lstm_target_, self).__init__()
         self.params=params
         self.embedding=nn.Embedding(self.params.vocab_target,self.params.dimension,padding_idx=self.params.vocab_dummy)
+        #vocab_target=25010 ; vocab_dummy = 25006
+        
+        # creating speaker embeddings
         if self.params.PersonaMode:
             self.speaker_embedding=nn.Embedding(self.params.SpeakerNum,self.params.dimension)
+            
         self.dropout=nn.Dropout(self.params.dropout)
-        self.linear=nn.Linear(self.params.dimension,4*self.params.dimension,False)
+        
+        self.linear=nn.Linear(self.params.dimension,4*self.params.dimension,False)        
         if self.params.PersonaMode:
             self.linear_v=nn.Linear(self.params.dimension,4*self.params.dimension,False)
-        for num in range(1,self.params.layers*2+1):
+            
+        for num in range(1,self.params.layers*2+1):     #4 layers; 8 'linear' attributes   of lstm_source_
             setattr(self,"linear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
+            
         self.atten_feed=attention_feed(self.params)
         self.soft_atten=softattention(self.params)
         
@@ -176,8 +184,8 @@ class persona:
 
         self.lstm_source =lstm_source_(self.params)
         self.lstm_target =lstm_target_(self.params)
-        self.lstm_source.apply(self.weights_init)
-        self.lstm_target.apply(self.weights_init)
+        self.lstm_source.apply(self.weights_init)     # weights_init is a member function
+        self.lstm_target.apply(self.weights_init)     # apply: Applies fn recursively to every submodule (as returned by .children()) as well as self.
         
         embed=list(self.lstm_source.parameters())[0]
         embed[self.params.vocab_dummy].data.fill_(0)
@@ -206,7 +214,7 @@ class persona:
     def weights_init(self,module):
         classname=module.__class__.__name__
         try:
-            module.weight.data.uniform_(-self.params.init_weight,self.params.init_weight)
+            module.weight.data.uniform_(-self.params.init_weight,self.params.init_weight)    #init_weight=0.1
         except:
             pass
     
