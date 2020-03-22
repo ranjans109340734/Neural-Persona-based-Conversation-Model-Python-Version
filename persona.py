@@ -54,7 +54,7 @@ class lstm_source_(nn.Module):
         super(lstm_source_, self).__init__()     #to declare the class as a Torch Module class
         self.params=params
         self.sembedding=nn.Embedding(self.params.vocab_source,self.params.dimension,padding_idx=self.params.vocab_dummy) 
-        #vocab_source=25010, vocab_dummy=25006, dimension=512
+        #vocab_source=25010, dimension=512, vocab_dummy=25006
         self.sdropout=nn.Dropout(self.params.dropout)
         for num in range(1,self.params.layers*2+1):  #4 layers; 8 'slinear' attributes   of lstm_source_
             setattr(self,"slinear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
@@ -190,11 +190,14 @@ class persona:
         print(len(list(self.lstm_source.parameters())))
         for i in range(0,len(list(self.lstm_source.parameters()))):
             print(list(self.lstm_source.parameters())[i].size())
-        print(list(self.lstm_source.parameters()))
+        print(self.params.vocab_dummy)
+        print(embed[self.params.vocab_dummy])
+        print(embed[self.params.vocab_dummy].data)
         
-        embed=list(self.lstm_source.parameters())[0]
-        embed[self.params.vocab_dummy].data.fill_(0)
-        embed=list(self.lstm_target.parameters())[0]
+        
+        embed=list(self.lstm_source.parameters())[0]    #sembedding from lst_source
+        embed[self.params.vocab_dummy].data.fill_(0)    
+        embed=list(self.lstm_target.parameters())[0]    #embedding from lst_target
         embed[self.params.vocab_dummy].data.fill_(0)
         
         if self.params.use_GPU:
