@@ -225,7 +225,7 @@ class persona:
     def ReadDict(self):
         self.dict={}
         dictionary=open(self.params.train_path+self.params.dictPath,"r").readlines()        #data/testing/vocabulary
-        for index in range(len(dictionary)):
+        for index in range(len(dictionary)):        # Dictionary is 0-indexed
             line=dictionary[index].strip()
             self.dict[index]=line
 
