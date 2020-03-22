@@ -192,7 +192,7 @@ class persona:
         embed=list(self.lstm_target.parameters())[0]    #embedding from lstm_target, 25010*512
         embed[self.params.vocab_dummy].data.fill_(0)
         
-        print(self.lstm_source.parameters())[0][self.params.vocab_dummy]
+        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy].data)
         
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
