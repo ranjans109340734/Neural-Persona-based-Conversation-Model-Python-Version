@@ -16,9 +16,9 @@ class params:
 		self.fine_tuning=False
 		self.fine_tuning_model="save/model"
 		if self.PersonaMode:
-			self.saveFolder="save/"+self.train_path.split("/")[-1]
+			self.saveFolder="save/"+self.train_path.split("/")[-1]     # save/testing
 		else:
-			self.saveFolder="save/"+self.train_path.split("/")[-1]+"/non_persona"
+			self.saveFolder="save/"+self.train_path.split("/")[-1]+"/non_persona"    # save/testing/non_persona
 			
 		self.init_weight=0.1
 		self.alpha=1
@@ -33,7 +33,7 @@ class params:
 		
 		self.save_prefix=self.saveFolder+"/model"
 		self.save_params_file=self.saveFolder+"/params"
-		self.output_file=self.saveFolder+"/log"
+		self.output_file=self.saveFolder+"/log"    # save/testing/log or save/testing/non_persona/log
 		
 		self.reverse=False
 		self.reverse_target=False
