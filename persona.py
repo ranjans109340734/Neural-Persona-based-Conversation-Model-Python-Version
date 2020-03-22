@@ -191,8 +191,8 @@ class persona:
         for i in range(0,len(list(self.lstm_source.parameters()))):
             print(list(self.lstm_source.parameters())[i].size())
         print(self.params.vocab_dummy)
-        print(embed[self.params.vocab_dummy])
-        print(embed[self.params.vocab_dummy].data)
+        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy])
+        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy].data)
         
         
         embed=list(self.lstm_source.parameters())[0]    #sembedding from lst_source
