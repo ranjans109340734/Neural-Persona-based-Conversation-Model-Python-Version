@@ -186,19 +186,13 @@ class persona:
         self.lstm_target =lstm_target_(self.params)
         self.lstm_source.apply(self.weights_init)     # weights_init is a member function
         self.lstm_target.apply(self.weights_init)     # apply: Applies fn recursively to every submodule (as returned by .children()) as well as self.
-        
-        print(len(list(self.lstm_source.parameters())))
-        for i in range(0,len(list(self.lstm_source.parameters()))):
-            print(list(self.lstm_source.parameters())[i].size())
-        print(self.params.vocab_dummy)
-        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy])
-        print(list(self.lstm_source.parameters())[0][self.params.vocab_dummy].data)
-        
-        
-        embed=list(self.lstm_source.parameters())[0]    #sembedding from lst_source
+       
+        embed=list(self.lstm_source.parameters())[0]    #sembedding from lstm_source, 25010*512
         embed[self.params.vocab_dummy].data.fill_(0)    
-        embed=list(self.lstm_target.parameters())[0]    #embedding from lst_target
+        embed=list(self.lstm_target.parameters())[0]    #embedding from lstm_target, 25010*512
         embed[self.params.vocab_dummy].data.fill_(0)
+        
+        print(self.lstm_source.parameters())[0][self.params.vocab_dummy]
         
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
