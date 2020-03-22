@@ -296,7 +296,7 @@ class persona:
 
     def test(self):
         if self.mode=="test":
-            open_train_file=self.params.train_path+self.params.dev_file
+            open_train_file=self.params.train_path+self.params.dev_file     # data/testing/valid.txt
         sum_err_all=0 
         total_num_all=0
         End=0
@@ -346,7 +346,7 @@ class persona:
         print("finished saving")
 
     def saveParams(self):
-        with open(self.params.save_params_file+".pickle","wb") as file:
+        with open(self.params.save_params_file+".pickle","wb") as file:         # save/testing/params.pickle or save/testing/non_persona/params.pickle
             pickle.dump(self.params,file)
 
     def readModel(self):
@@ -362,6 +362,7 @@ class persona:
     def train(self):
         if self.params.saveModel:
             self.saveParams()
+            
         if self.params.fine_tuning:
             target_model=torch.load(self.params.fine_tuning_model+"_target.pkl")
             linear_v=self.lstm_target.state_dict()["linear_v.weight"]
@@ -372,9 +373,10 @@ class persona:
             self.lstm_target.load_state_dict(target_model)
             self.softmax.load_state_dict(torch.load(self.params.fine_tuning_model+"_softmax.pkl"))
             print("read model done")
+            
         self.iter=0
         start_halving=False
-        self.lr=self.params.alpha
+        self.lr=self.params.alpha   # alpha=1
         print("iter  "+str(self.iter))
         self.mode="test"
         self.test()
