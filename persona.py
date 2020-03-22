@@ -303,6 +303,15 @@ class persona:
         batch_n=0
         while End==0:
             End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseeID=self.Data.read_train(open_train_file,batch_n)
+            # Word_s and Word_t: tensors, batch_size*max_length
+            # Padding_s, Paddint_t: tensors, batch_size*max_length
+            # Mask_s, Mask_t: dicts, max_length
+            # Left_s, Left_t: dicts, max_length
+            # AddresseeID: str
+            # SpeakerID: tensor
+            # Source: dict with tensors as its values, wrt addressee
+            # Target: dict with tensors as its values, wrt speaker
+            
             batch_n+=1
             if len(self.Word_s)==0 or End==1:
                 break
