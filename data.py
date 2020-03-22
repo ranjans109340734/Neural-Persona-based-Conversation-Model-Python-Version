@@ -105,7 +105,8 @@ class data:
                     print(torch.Tensor([[self.EOT]]))
                     
                 Target[i]=torch.cat((torch.Tensor([[self.EOS]]),torch.cat((self.spl(speaker_line.strip()),torch.Tensor([[self.EOT]])),1)),1)
-                print(Target[i])
+                if i==0:
+                    print(Target[i])
         if End==1:
             return End,{},{},{},{},{},{},{},{},{},{},{},{}
         Words_s,Masks_s,Left_s,Padding_s=self.get_batch(Source,True)
