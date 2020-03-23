@@ -269,13 +269,7 @@ class persona:
                 self.lstm_source.eval()         # Turn on the evaluation mode
                 
             output=self.lstm_source(inputs)
-            
-            print(len(output))
-            for i in range(0,8):
-                print(output[i].size())
-                print("LSTM",list(self.lstm_source.parameters())[i+1].size())
-            
-            
+                    
             if t==self.Word_s.size(1)-1:
                 self.last=output
             self.SourceVector=output[self.params.layers*2-2]
