@@ -243,7 +243,7 @@ class persona:
 
     def model_forward(self):
         print("model_forward")
-        print("mode:",self.mode)
+        print("mode at 246:",self.mode)
         self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))
         #Word_s: batch_size*max_length
         
@@ -264,6 +264,9 @@ class persona:
                 inputs=output
                 
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
+            
+            if t==0:
+                print("mode at 269:",self.mode)
 
             if self.mode=="train":
                 self.lstm_source.train()
@@ -306,7 +309,7 @@ class persona:
 
     def test(self):
         print("test")
-        print("mode:",self.mode)
+        print("mode at 312:",self.mode)
         if self.mode=="test":
             open_train_file=self.params.train_path+self.params.dev_file     # data/testing/valid.txt
         sum_err_all=0 
@@ -407,11 +410,11 @@ class persona:
         self.mode="test"
         self.test()
         print("test done")
-        print("mode:",self.mode)
+        print("mode at 413:",self.mode)
         while True:
             self.iter+=1
             print("iter  "+str(self.iter))
-            print("mode:",self.mode)
+            print("mode at 417:",self.mode)
             if self.output!="":
                 with open(self.output,"a") as selfoutput:
                     selfoutput.write("iter  "+str(self.iter)+"\n")
