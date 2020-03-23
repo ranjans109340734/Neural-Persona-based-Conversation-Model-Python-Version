@@ -269,7 +269,12 @@ class persona:
                 self.lstm_source.eval()         # Turn on the evaluation mode
                 
             output=self.lstm_source(inputs)
-            print(type(self.lstm_source))
+            
+            if t==0:
+                for i in range(0,9):
+                    print("input",inputs[i].size())
+                    print("output",output[i].size())
+                    print("lstm",list(self.lstm_source.parameres())[i].size())
                     
             if t==self.Word_s.size(1)-1:
                 self.last=output
