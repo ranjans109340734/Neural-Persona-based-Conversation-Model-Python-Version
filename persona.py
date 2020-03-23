@@ -264,11 +264,15 @@ class persona:
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
 
             if self.mode=="train":
-                self.lstm_source.train()        #NOT CALLING persona.train(), it calls inbuilt nn.Module function
+                self.lstm_source.train()        # Turn on the train mode
             else:
-                self.lstm_source.eval()         #calling nn.Module function
+                self.lstm_source.eval()         # Turn on the evaluation mode
                 
             output=self.lstm_source(inputs)
+            
+            print(type(output))
+            print(output[0])
+            print(output.size())
             
             if t==self.Word_s.size(1)-1:
                 self.last=output
