@@ -270,7 +270,7 @@ class persona:
                 
             output=self.lstm_source(inputs)
             
-            print(len(input))
+            print(len(inputs))
             print(type(output))
             print(len(output))
             print(output[0])
