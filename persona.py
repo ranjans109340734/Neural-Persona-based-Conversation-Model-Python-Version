@@ -386,7 +386,6 @@ class persona:
 
     def train(self):
         print("train")
-        print(self.mode)
         if self.params.saveModel:
             self.saveParams()
             
