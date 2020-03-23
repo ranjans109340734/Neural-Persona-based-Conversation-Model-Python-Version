@@ -264,10 +264,9 @@ class persona:
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
 
             if self.mode=="train":
-                print("calling train()")
-                self.lstm_source.train()
+                self.lstm_source.train()        #NOT CALLING persona.train(), it calls inbuilt nn.Module function
             else:
-                self.lstm_source.eval()
+                self.lstm_source.eval()         #calling nn.Module function
                 
             output=self.lstm_source(inputs)
             
@@ -382,7 +381,6 @@ class persona:
             module.zero_grad()
 
     def train(self):
-        print("train")
         if self.params.saveModel:
             self.saveParams()
             
