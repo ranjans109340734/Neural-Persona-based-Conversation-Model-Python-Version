@@ -271,8 +271,10 @@ class persona:
             output=self.lstm_source(inputs)
             
             print(type(output))
+            print(len(output))
+            print(output[0].size())
             print(output[0])
-            print(output.size())
+            
             
             if t==self.Word_s.size(1)-1:
                 self.last=output
