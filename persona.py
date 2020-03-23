@@ -264,6 +264,7 @@ class persona:
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
 
             if self.mode=="train":
+                print("calling train()")
                 self.lstm_source.train()
             else:
                 self.lstm_source.eval()
@@ -381,6 +382,7 @@ class persona:
             module.zero_grad()
 
     def train(self):
+        print("train")
         if self.params.saveModel:
             self.saveParams()
             
