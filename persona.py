@@ -407,6 +407,7 @@ class persona:
         print("iter  "+str(self.iter))
         self.mode="test"
         self.test()
+        print("test done")
         while True:
             self.iter+=1
             print("iter  "+str(self.iter))
