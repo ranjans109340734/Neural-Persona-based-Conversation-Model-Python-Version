@@ -273,7 +273,7 @@ class persona:
             if t==0:
                 for i in range(0,9):
                     print("input",inputs[i].size())
-                    print("lstm",list(self.lstm_source.parameres())[i].size())
+                    print("lstm",list(self.lstm_source.parameters())[i].size())
                     if i!=9:
                         print("output",output[i].size()) 
                     
