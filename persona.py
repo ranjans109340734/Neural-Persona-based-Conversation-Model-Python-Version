@@ -275,7 +275,7 @@ class persona:
                     print("input",inputs[i].size())
                     print("lstm",list(self.lstm_source.parameres())[i].size())
                     if i!=9:
-                        print("output",output[i].size())
+                        print("output",output[i].size()) 
                     
             if t==self.Word_s.size(1)-1:
                 self.last=output
