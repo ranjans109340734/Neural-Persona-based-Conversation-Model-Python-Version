@@ -271,8 +271,9 @@ class persona:
             output=self.lstm_source(inputs)
             
             print(len(output))
-            print(output[0].size())
-            
+            for i in range(0,8):
+                print(output[i].size())
+            print("LSTM",lstm_source.parameters()[1].size())
             
             if t==self.Word_s.size(1)-1:
                 self.last=output
