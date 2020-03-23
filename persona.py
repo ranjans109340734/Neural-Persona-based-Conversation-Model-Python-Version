@@ -243,30 +243,39 @@ class persona:
 
     def model_forward(self):
         self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))
+        #Word_s: batch_size*max_length
+        
         if self.params.use_GPU:
             self.context=self.context.cuda()
-        for t in range(self.Word_s.size(1)):
+            
+        for t in range(self.Word_s.size(1)):        #max_length
             inputs=[]
             if t==0:
-                for ll in range(self.params.layers):
+                for ll in range(self.params.layers):        #layers=4
                     if self.params.use_GPU:
-                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension).cuda()))
-                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension).cuda()))
+                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension).cuda()))      #batch_size*dimension
+                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension).cuda()))      #batch_size*dimension
                     else:
-                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension)))
-                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension)))
+                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension)))     #batch_size*dimension
+                        inputs.append(Variable(torch.zeros(self.Word_s.size(0),self.params.dimension)))     #batch_size*dimension
             else:
                 inputs=output
-            inputs.append(self.Word_s[:,t])
+                
+            inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
+            classname_1=self.lstm_source.__class__.__name__
+            print(classname_1)
             if self.mode=="train":
                 self.lstm_source.train()
             else:
                 self.lstm_source.eval()
+                
             output=self.lstm_source(inputs)
+            
             if t==self.Word_s.size(1)-1:
                 self.last=output
             self.SourceVector=output[self.params.layers*2-2]
             self.context[:,t]=output[2*self.params.layers-2]
+            
         if self.mode!="decoding":
             sum_err=0
             total_num=0
