@@ -262,8 +262,7 @@ class persona:
                 inputs=output
                 
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
-            classname_1=self.lstm_source.__class__.__name__
-            print(classname_1)
+            print(type(self.lstm_source))
             if self.mode=="train":
                 self.lstm_source.train()
             else:
