@@ -269,6 +269,7 @@ class persona:
                 self.lstm_source.eval()         # Turn on the evaluation mode
                 
             output=self.lstm_source(inputs)
+            print(type(self.lstm_source))
                     
             if t==self.Word_s.size(1)-1:
                 self.last=output
