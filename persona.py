@@ -83,14 +83,7 @@ class lstm_source_(nn.Module):
             next_c=l1+l2
             next_h= out_gate*(nn.Tanh()(next_c))
             outputs.append(next_h)
-            outputs.append(next_c)
-            
-            print("In forward function:")
-            print(len(outputs))
-            for i in range(len(outputs)):
-                print(outputs[i].size())
-            print(outputs[0][0])
-            
+            outputs.append(next_c)            
         return outputs
         
 
@@ -276,15 +269,6 @@ class persona:
                 self.lstm_source.eval()         # Turn on the evaluation mode
                 
             output=self.lstm_source(inputs)
-            
-            if t==0:
-                for i in range(0,9):
-                    print(i)
-                    print("input",inputs[i].size())
-                    print("lstm",list(self.lstm_source.parameters())[i].size())
-                    if i!=8:
-                        print("output",output[i].size()) 
-            print(output[0][0])
                     
             if t==self.Word_s.size(1)-1:
                 self.last=output
