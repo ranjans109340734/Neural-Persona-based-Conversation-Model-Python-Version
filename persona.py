@@ -286,10 +286,8 @@ class persona:
             print("Check")
             if self.mode=="train":
                 self.lstm_source.train()        # Turn on the train mode
-                print("train")
             else:
                 self.lstm_source.eval()         # Turn on the evaluation mode
-                print("eval")
                 
             output=self.lstm_source(inputs)         #forward() in lstm_source_ needs to be implemented  #list of 8 elements, each 256*512
                     
