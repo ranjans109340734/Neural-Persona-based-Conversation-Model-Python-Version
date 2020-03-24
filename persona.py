@@ -81,19 +81,14 @@ class lstm_source_(nn.Module):
             
             # Input data(mini-batch) for each layer in 512 dimension
             reshaped_gates=gates.view(-1,4,self.params.dimension)       #256*4*512
-            
-            print(reshaped_gates[:,0].size())
-            print(reshaped_gates[:,1].size())
-            print(reshaped_gates[:,2].size())
-            print(reshaped_gates[:,3].size())
-            
+                       
             #forget gate
             forget_gate= nn.Sigmoid()(reshaped_gates[:,2])      #256*512
             
             #input gate layer
-            in_gate= nn.Sigmoid()(reshaped_gates[:,0])
+            in_gate= nn.Sigmoid()(reshaped_gates[:,0])      #256*512
             #candidate
-            in_transform= nn.Tanh()(reshaped_gates[:,1])
+            in_transform= nn.Tanh()(reshaped_gates[:,1])      #256*512
             
             #New candidate
             l1=forget_gate*inputs[ll*2+1]           #prev_c: using second tensor of each loop while creating inputs in model_forward
@@ -101,7 +96,7 @@ class lstm_source_(nn.Module):
             next_c=l1+l2
 
             #output gate
-            out_gate= nn.Sigmoid()(reshaped_gates[:,3])
+            out_gate= nn.Sigmoid()(reshaped_gates[:,3])      #256*512
           
             #next hidden state
             next_h= out_gate*(nn.Tanh()(next_c))
