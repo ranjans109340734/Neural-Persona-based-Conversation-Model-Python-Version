@@ -60,6 +60,7 @@ class lstm_source_(nn.Module):
             setattr(self,"slinear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
 
     #inputs is a list of 9 elements: 1st 8 tensors: bacth_size*dimension; 9th: batch_size
+    #output is a list of 8 elements: 4 'h's and 'c's, each 256*512
     def forward(self,inputs):
         outputs = []
         for ll in range(self.params.layers):        #loop 4 times
@@ -68,7 +69,7 @@ class lstm_source_(nn.Module):
             
             # embedding the input vector i.e. the lines of size mini-batch
             if ll==0:
-                x=self.sembedding(inputs[-1])       #x: bacth_size*dimension
+                x=self.sembedding(inputs[-1])       #x: batch_size*dimension
             else:
                 x=outputs[ll*2-2]
                 
@@ -91,15 +92,15 @@ class lstm_source_(nn.Module):
             in_transform= nn.Tanh()(reshaped_gates[:,1])      #256*512
             
             #New candidate
-            l1=forget_gate*inputs[ll*2+1]           #prev_c: using second tensor of each loop while creating inputs in model_forward
+            l1=forget_gate*inputs[ll*2+1]       #256*512    #prev_c: using second tensor of each loop while creating inputs in model_forward
             l2=in_gate*in_transform
-            next_c=l1+l2
+            next_c=l1+l2        #256*512
 
             #output gate
             out_gate= nn.Sigmoid()(reshaped_gates[:,3])      #256*512
           
             #next hidden state
-            next_h= out_gate*(nn.Tanh()(next_c))
+            next_h= out_gate*(nn.Tanh()(next_c))        #256*512
             
             #storing new candidate and next hidden state
             outputs.append(next_h)
