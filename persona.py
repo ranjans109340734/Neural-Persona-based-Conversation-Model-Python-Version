@@ -21,7 +21,7 @@ class attention_feed(nn.Module):
     def forward(self,target_t,context,context_mask):
         context_mask_p=(context_mask-1)*100000000       #100 million
         atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)       #atten:batch_size*max_length*1 ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
-        print(torch.bmm(context,target_t.unsqueeze(2)).size())
+        print(torch.bmm(context,target_t.unsqueeze(2)).size(), context.size())
         atten=atten+context_mask_p
         atten=nn.Softmax(dim=1)(atten)
         atten=atten.unsqueeze(1)
