@@ -84,6 +84,13 @@ class lstm_source_(nn.Module):
             next_h= out_gate*(nn.Tanh()(next_c))
             outputs.append(next_h)
             outputs.append(next_c)
+            
+            print("In forward function:")
+            print(len(outputs))
+            for i in range(len(outputs)):
+                print(outputs[i].size())
+            print(outputs[0][0])
+            
         return outputs
         
 
@@ -275,8 +282,9 @@ class persona:
                     print(i)
                     print("input",inputs[i].size())
                     print("lstm",list(self.lstm_source.parameters())[i].size())
-                    if i!=9:
+                    if i!=8:
                         print("output",output[i].size()) 
+            print(outputs[0][0])
                     
             if t==self.Word_s.size(1)-1:
                 self.last=output
