@@ -75,14 +75,16 @@ class lstm_source_(nn.Module):
             drop_x=self.sdropout(x)         #setting dropout on x
             drop_h=self.sdropout(inputs[ll*2])      #first tensor of each loop while creating inputs in model_forward, which consists of all zeros
             
-            
             i2h=getattr(self,"slinear"+str(ll*2+1))(drop_x)     #batch_size*2048
             h2h=getattr(self,"slinear"+str(ll*2+2))(drop_h)     #batch_size*2048
-            gates=i2h+h2h
-            print("Gates size:",gates.size())
+            gates=i2h+h2h       #batch_size*2048
             
-            reshaped_gates=gates.view(-1,4,self.params.dimension)
-            print("Reshaped gates:",reshaped_gates.size())
+            # Input data(mini-batch) for each layer in 512 dimension
+            reshaped_gates=gates.view(-1,4,self.params.dimension)       #256*4*512
+            
+            print(torch.all(torch.eq(reshaped_gates[:,2],reshaped_gates[:,1])))
+            print(torch.all(torch.eq(reshaped_gates[:,2],reshaped_gates[:,3])))
+            print(torch.all(torch.eq(reshaped_gates[:,3],reshaped_gates[:,0])))
             
             #forget gate
             forget_gate= nn.Sigmoid()(reshaped_gates[:,2])
