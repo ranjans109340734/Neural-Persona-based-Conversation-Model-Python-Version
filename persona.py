@@ -76,8 +76,12 @@ class lstm_source_(nn.Module):
             drop_x=self.sdropout(x)         #setting dropout on x
             drop_h=self.sdropout(inputs[ll*2])      #first tensor of each loop while creating inputs in model_forward, which consists of all zeros
             
+            #input
             i2h=getattr(self,"slinear"+str(ll*2+1))(drop_x)     #batch_size*2048
+            #previous hidden state
             h2h=getattr(self,"slinear"+str(ll*2+2))(drop_h)     #batch_size*2048
+            
+            #combining input and previous hidden state
             gates=i2h+h2h       #batch_size*2048
             
             # Input data(mini-batch) for each layer in 512 dimension
@@ -86,7 +90,7 @@ class lstm_source_(nn.Module):
             #forget gate
             forget_gate= nn.Sigmoid()(reshaped_gates[:,2])      #256*512
             
-            #input gate layer
+            #input gate 
             in_gate= nn.Sigmoid()(reshaped_gates[:,0])      #256*512
             #candidate
             in_transform= nn.Tanh()(reshaped_gates[:,1])      #256*512
@@ -131,16 +135,17 @@ class lstm_target_(nn.Module):
             
         self.atten_feed=attention_feed(self.params)
         self.soft_atten=softattention(self.params)
-        
+    
+    #inputs: 12 elements: 8 elements-output of lstm_source function; 1-context; 1-'t'th word; 1-padding; 1-Speaker ID
     def forward(self,inputs):
-        context=inputs[self.params.layers*2]
+        context=inputs[self.params.layers*2]    #extracting context
         x_=inputs[self.params.layers*2+1]       #t-th word of each sentence; 256
         source_mask=inputs[self.params.layers*2+2]      #padding; 256*max_length_s
         outputs=[]
         
         for ll in range(self.params.layers):
-            prev_h=inputs[ll*2]
-            prev_c=inputs[ll*2+1]
+            prev_h=inputs[ll*2]     #non-zero h
+            prev_c=inputs[ll*2+1]     #non-zero c
             
             if ll==0:
                 x=self.embedding(x_)
@@ -150,14 +155,18 @@ class lstm_target_(nn.Module):
             drop_x=self.dropout(x)
             drop_h=self.dropout(inputs[ll*2])
             
+            #input, with dropout
             i2h=getattr(self,"linear"+str(ll*2+1))(drop_x)
+            #previous hidden state, with dropout
             h2h=getattr(self,"linear"+str(ll*2+2))(drop_h)
             
             if ll==0:
                 context1=self.atten_feed(inputs[self.params.layers*2-2],context,source_mask)
                 drop_f=self.dropout(context1)
                 f2h=self.linear(drop_f)
+                
                 gates=(i2h+h2h)+f2h
+                
                 if self.params.PersonaMode:
                     speaker_index=inputs[self.params.layers*2+3]
                     speaker_v=self.speaker_embedding(speaker_index)
@@ -166,6 +175,7 @@ class lstm_target_(nn.Module):
                     gates=gates+v
             else:
                 gates=i2h+h2h
+                
             reshaped_gates = gates.view(-1,4,self.params.dimension)
             in_gate=nn.Sigmoid()(reshaped_gates[:,0])
             in_transform= nn.Tanh()(reshaped_gates[:,1])
@@ -173,10 +183,13 @@ class lstm_target_(nn.Module):
             out_gate=nn.Sigmoid()(reshaped_gates[:,3])
             l1=forget_gate*inputs[ll*2+1]
             l2=in_gate*in_transform
+            
             next_c=l1+l2
             next_h= out_gate*(nn.Tanh()(next_c))
+            
             outputs.append(next_h)
             outputs.append(next_c)
+            
         soft_vector=self.soft_atten(outputs[self.params.layers*2-2],context,source_mask)
         outputs.append(soft_vector)
         return outputs
