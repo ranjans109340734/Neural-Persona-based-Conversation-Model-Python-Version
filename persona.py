@@ -73,23 +73,37 @@ class lstm_source_(nn.Module):
                 x=outputs[ll*2-2]
                 
             drop_x=self.sdropout(x)         #setting dropout on x
-            drop_h=self.sdropout(inputs[ll*2])      #first tensor of each loop while creating inputs in model_forward
+            drop_h=self.sdropout(inputs[ll*2])      #first tensor of each loop while creating inputs in model_forward, which consists of all zeros
             
-            i2h=getattr(self,"slinear"+str(ll*2+1))(drop_x)
-            h2h=getattr(self,"slinear"+str(ll*2+2))(drop_h)
+            
+            i2h=getattr(self,"slinear"+str(ll*2+1))(drop_x)     #batch_size*2048
+            h2h=getattr(self,"slinear"+str(ll*2+2))(drop_h)     #batch_size*2048
             gates=i2h+h2h
+            print("Gates size:",gates.size())
             
             reshaped_gates=gates.view(-1,4,self.params.dimension)
-            in_gate= nn.Sigmoid()(reshaped_gates[:,0])
-            in_transform= nn.Tanh()(reshaped_gates[:,1])
-            forget_gate= nn.Sigmoid()(reshaped_gates[:,2])
-            out_gate= nn.Sigmoid()(reshaped_gates[:,3])
-            l1=forget_gate*inputs[ll*2+1]
-            l2=in_gate*in_transform
+            print("Reshaped gates:",reshaped_gates.size())
             
+            #forget gate
+            forget_gate= nn.Sigmoid()(reshaped_gates[:,2])
+            
+            #input gate layer
+            in_gate= nn.Sigmoid()(reshaped_gates[:,0])
+            #candidate
+            in_transform= nn.Tanh()(reshaped_gates[:,1])
+            
+            #New candidate
+            l1=forget_gate*inputs[ll*2+1]           #prev_c: using second tensor of each loop while creating inputs in model_forward
+            l2=in_gate*in_transform
             next_c=l1+l2
+
+            #output gate
+            out_gate= nn.Sigmoid()(reshaped_gates[:,3])
+          
+            #next hidden state
             next_h= out_gate*(nn.Tanh()(next_c))
             
+            #storing new candidate and next hidden state
             outputs.append(next_h)
             outputs.append(next_c)            
         return outputs
