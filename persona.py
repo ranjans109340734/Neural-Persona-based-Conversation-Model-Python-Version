@@ -59,20 +59,26 @@ class lstm_source_(nn.Module):
         for num in range(1,self.params.layers*2+1):  #4 layers; 8 'slinear' attributes   of lstm_source_
             setattr(self,"slinear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
 
+    #inputs is a list of 9 elements: 1st 8 tensors: bacth_size*dimension; 9th: batch_size
     def forward(self,inputs):
         outputs = []
-        for ll in range(self.params.layers):
-            prev_h=inputs[ll*2]
-            prev_c=inputs[ll*2+1]
+        for ll in range(self.params.layers):        #loop 4 times
+            prev_h=inputs[ll*2]         #first tensor of each loop while creating inputs in model_forward
+            prev_c=inputs[ll*2+1]       #second tensor of each loop while creating inputs in model_forward
+            
+            # embedding the input vector i.e. the lines of size mini-batch
             if ll==0:
-                x=self.sembedding(inputs[-1])
+                x=self.sembedding(inputs[-1])       #x: bacth_size*dimension
             else:
                 x=outputs[ll*2-2]
-            drop_x=self.sdropout(x)
-            drop_h=self.sdropout(inputs[ll*2])
+                
+            drop_x=self.sdropout(x)         #setting dropout on x
+            drop_h=self.sdropout(inputs[ll*2])      #first tensor of each loop while creating inputs in model_forward
+            
             i2h=getattr(self,"slinear"+str(ll*2+1))(drop_x)
             h2h=getattr(self,"slinear"+str(ll*2+2))(drop_h)
             gates=i2h+h2h
+            
             reshaped_gates=gates.view(-1,4,self.params.dimension)
             in_gate= nn.Sigmoid()(reshaped_gates[:,0])
             in_transform= nn.Tanh()(reshaped_gates[:,1])
@@ -80,8 +86,10 @@ class lstm_source_(nn.Module):
             out_gate= nn.Sigmoid()(reshaped_gates[:,3])
             l1=forget_gate*inputs[ll*2+1]
             l2=in_gate*in_transform
+            
             next_c=l1+l2
             next_h= out_gate*(nn.Tanh()(next_c))
+            
             outputs.append(next_h)
             outputs.append(next_c)            
         return outputs
