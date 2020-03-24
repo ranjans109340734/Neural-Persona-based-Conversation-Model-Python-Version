@@ -82,10 +82,10 @@ class lstm_source_(nn.Module):
             # Input data(mini-batch) for each layer in 512 dimension
             reshaped_gates=gates.view(-1,4,self.params.dimension)       #256*4*512
             
-            print(reshaped_gates[:,0])
-            print(reshaped_gates[:,1])
-            print(reshaped_gates[:,2])
-            print(reshaped_gates[:,3])
+            print(reshaped_gates[:,0].size())
+            print(reshaped_gates[:,1].size())
+            print(reshaped_gates[:,2].size())
+            print(reshaped_gates[:,3].size())
             
             #forget gate
             forget_gate= nn.Sigmoid()(reshaped_gates[:,2])      #256*512
