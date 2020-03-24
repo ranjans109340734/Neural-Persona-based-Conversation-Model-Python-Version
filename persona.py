@@ -134,20 +134,25 @@ class lstm_target_(nn.Module):
         
     def forward(self,inputs):
         context=inputs[self.params.layers*2]
-        x_=inputs[self.params.layers*2+1]
-        source_mask=inputs[self.params.layers*2+2]
+        x_=inputs[self.params.layers*2+1]       #t-th word of each sentence; 256
+        source_mask=inputs[self.params.layers*2+2]      #padding; 256*max_length_s
         outputs=[]
+        
         for ll in range(self.params.layers):
             prev_h=inputs[ll*2]
             prev_c=inputs[ll*2+1]
+            
             if ll==0:
                 x=self.embedding(x_)
             else:
                 x=outputs[ll*2-2]
+                
             drop_x=self.dropout(x)
             drop_h=self.dropout(inputs[ll*2])
+            
             i2h=getattr(self,"linear"+str(ll*2+1))(drop_x)
             h2h=getattr(self,"linear"+str(ll*2+2))(drop_h)
+            
             if ll==0:
                 context1=self.atten_feed(inputs[self.params.layers*2-2],context,source_mask)
                 drop_f=self.dropout(context1)
@@ -263,13 +268,13 @@ class persona:
         return string
 
     def model_forward(self):
-        self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))      #256*max_length*512
+        self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))      #256*maxlength_s*512
         #Word_s: batch_size*max_length
         
         if self.params.use_GPU:
             self.context=self.context.cuda()
             
-        for t in range(self.Word_s.size(1)):        #max_length
+        for t in range(self.Word_s.size(1)):        #maxlength_s
             inputs=[]
             if t==0:
                 for ll in range(self.params.layers):        #layers=4
@@ -291,7 +296,7 @@ class persona:
                 
             output=self.lstm_source(inputs)         #forward() in lstm_source_ needs to be implemented  #list of 8 elements, each 256*512
                     
-            if t==self.Word_s.size(1)-1:        #when t==maxlength-1
+            if t==self.Word_s.size(1)-1:        #when t==maxlength_s-1
                 self.last=output
                 
             self.SourceVector=output[self.params.layers*2-2]        #256*512; last but one element of output: this is final hidden state of 4 layers
@@ -300,22 +305,30 @@ class persona:
         if self.mode!="decoding":
             sum_err=0
             total_num=0
-            for t in range(self.Word_t.size(1)-1):
+            for t in range(self.Word_t.size(1)-1):      #max_length_t-1
                 lstm_input=[]
+                
                 if t==0:
                     lstm_input=output
                 else:
                     lstm_input=output[:-1]
-                lstm_input.append(self.context)
-                lstm_input.append(self.Word_t[:,t])
-                lstm_input.append(self.Padding_s)
+                    
+                lstm_input.append(self.context)         #256*maxlength_s*512
+                lstm_input.append(self.Word_t[:,t])     #t-th word of each sentence; 256
+                lstm_input.append(self.Padding_s)       #256*max_length_s
+                
                 if self.params.PersonaMode:
                     lstm_input.append(self.SpeakerID)
+                
+                #lstm_input has 12 elements(including SpeakerID)
+                    
                 if self.mode=="train":
                     self.lstm_target.train()
                 else:
                     self.lstm_target.eval()
+                    
                 output=self.lstm_target(lstm_input)
+                
                 current_word=self.Word_t[:,t+1]
                 err,pred=self.softmax(output[-1],current_word)
                 sum_err=sum_err+err
@@ -339,7 +352,7 @@ class persona:
             # Mask_s, Mask_t: dicts, max_length
             # Left_s, Left_t: dicts, max_length
             # AddresseeID: str
-            # SpeakerID: tensor
+            # SpeakerID: tensor of 256 elements, each representing speaker ID number
             # Source: dict with tensors as its values, wrt addressee
             # Target: dict with tensors as its values, wrt speaker
             
