@@ -19,8 +19,9 @@ class attention_feed(nn.Module):
         self.params=params
     
     def forward(self,target_t,context,context_mask):
-        context_mask_p=(context_mask-1)*100000000
-        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)
+        context_mask_p=(context_mask-1)*100000000       #100 million
+        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)       #atten:batch_size*max_length*1 ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
+        print(atten.size())
         atten=atten+context_mask_p
         atten=nn.Softmax(dim=1)(atten)
         atten=atten.unsqueeze(1)
@@ -162,6 +163,9 @@ class lstm_target_(nn.Module):
             
             if ll==0:
                 context1=self.atten_feed(inputs[self.params.layers*2-2],context,source_mask)
+                #passing 3 elements: 1st- hidden state of last layer of last timestamp of LSTM source (batch_size*dimension); 
+                                    #2nd- Context from LSTM source (batch_size*max_length_s*dimension);
+                                    #3rd- padding (batch_size*max_length_s); 0 in the beginning, 1 in places where there are words
                 drop_f=self.dropout(context1)
                 f2h=self.linear(drop_f)
                 
