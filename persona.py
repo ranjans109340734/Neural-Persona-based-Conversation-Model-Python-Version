@@ -263,7 +263,7 @@ class persona:
         return string
 
     def model_forward(self):
-        self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))
+        self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))      #256*max_length*512
         #Word_s: batch_size*max_length
         
         if self.params.use_GPU:
@@ -282,19 +282,22 @@ class persona:
             else:
                 inputs=output
                 
-            inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s
-
+            inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s i.e. t-th word of each of 256 sentences
+            print("Check")
             if self.mode=="train":
                 self.lstm_source.train()        # Turn on the train mode
+                print("train")
             else:
                 self.lstm_source.eval()         # Turn on the evaluation mode
+                print("eval")
                 
-            output=self.lstm_source(inputs)
+            output=self.lstm_source(inputs)         #forward() in lstm_source_ needs to be implemented  #list of 8 elements, each 256*512
                     
-            if t==self.Word_s.size(1)-1:
+            if t==self.Word_s.size(1)-1:        #when t==maxlength-1
                 self.last=output
-            self.SourceVector=output[self.params.layers*2-2]
-            self.context[:,t]=output[2*self.params.layers-2]
+                
+            self.SourceVector=output[self.params.layers*2-2]        #256*512; last but one element of output: this is final hidden state of 4 layers
+            self.context[:,t]=output[2*self.params.layers-2]        #256*512 at 't'th dimension of max_length
             
         if self.mode!="decoding":
             sum_err=0
