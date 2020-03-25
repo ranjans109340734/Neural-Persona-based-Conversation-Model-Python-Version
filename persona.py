@@ -20,8 +20,8 @@ class attention_feed(nn.Module):
     
     def forward(self,target_t,context,context_mask):
         context_mask_p=(context_mask-1)*100000000       #100 million
-        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)       #atten:batch_size*max_length*1 ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
-        print(torch.bmm(context,target_t.unsqueeze(2)).size(), context.size())
+        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)       #atten:batch_size*max_length (before sum() it is batch_size*max_length*1) ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
+
         atten=atten+context_mask_p
         atten=nn.Softmax(dim=1)(atten)
         atten=atten.unsqueeze(1)
@@ -305,7 +305,7 @@ class persona:
                 inputs=output
                 
             inputs.append(self.Word_s[:,t])     #appending t-th column of Word_s i.e. t-th word of each of 256 sentences
-            print("Check")
+
             if self.mode=="train":
                 self.lstm_source.train()        # Turn on the train mode
             else:
