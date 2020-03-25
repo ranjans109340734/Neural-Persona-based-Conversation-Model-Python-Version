@@ -65,7 +65,7 @@ class lstm_source_(nn.Module):
         for num in range(1,self.params.layers*2+1):  #4 layers; 8 'slinear' attributes   of lstm_source_
             setattr(self,"slinear"+str(num),nn.Linear(self.params.dimension,4*self.params.dimension,False))
 
-    #inputs is a list of 9 elements: 1st 8 tensors: bacth_size*dimension; 9th: batch_size
+    #inputs is a list of 9 elements: 1st 8 tensors: batch_size*dimension; 9th: batch_size
     #output is a list of 8 elements: 4 'h's and 'c's, each 256*512
     def forward(self,inputs):
         outputs = []
