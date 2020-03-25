@@ -18,6 +18,7 @@ class attention_feed(nn.Module):
         super(attention_feed, self).__init__()
         self.params=params
     
+    #output: batch_size*dimension
     def forward(self,target_t,context,context_mask):
         context_mask_p=(context_mask-1)*100000000       #100 million    #batch_size*max_length_s
         atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)       
@@ -157,9 +158,9 @@ class lstm_target_(nn.Module):
             drop_x=self.dropout(x)
             drop_h=self.dropout(inputs[ll*2])
             
-            #input, with dropout
+            #input, with dropout; batch_size*(dimension*4)
             i2h=getattr(self,"linear"+str(ll*2+1))(drop_x)
-            #previous hidden state, with dropout
+            #previous hidden state, with dropout; batch_size*(dimension*4)
             h2h=getattr(self,"linear"+str(ll*2+2))(drop_h)
             
             if ll==0:
@@ -167,16 +168,17 @@ class lstm_target_(nn.Module):
                 #passing 3 elements: 1st- hidden state of last layer of last timestamp of LSTM source (batch_size*dimension); 
                                     #2nd- Context from LSTM source (batch_size*max_length_s*dimension);
                                     #3rd- padding (batch_size*max_length_s); 0 in the beginning, 1 in places where there are words
+                #context1: batch_size*dimension
                 drop_f=self.dropout(context1)
                 f2h=self.linear(drop_f)
                 
-                gates=(i2h+h2h)+f2h
+                gates=(i2h+h2h)+f2h         #batch_size*(dimension*4)
                 
                 if self.params.PersonaMode:
                     speaker_index=inputs[self.params.layers*2+3]
-                    speaker_v=self.speaker_embedding(speaker_index)
+                    speaker_v=self.speaker_embedding(speaker_index)     #batch_size*dimension
                     speaker_v=self.dropout(speaker_v)
-                    v=self.linear_v(speaker_v)
+                    v=self.linear_v(speaker_v)      #batch_size*(dimension*4)
                     gates=gates+v
             else:
                 gates=i2h+h2h
