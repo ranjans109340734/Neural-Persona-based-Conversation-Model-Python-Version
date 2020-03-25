@@ -38,16 +38,19 @@ class softattention(nn.Module):
         self.attlinear1=nn.Linear(self.params.dimension,self.params.dimension,False)
         self.attlinear2=nn.Linear(self.params.dimension,self.params.dimension,False)
     
+    #returns output of size batch_size*dimension
     def forward(self,target_t,context,context_mask):
         context_mask_p=(context_mask-1)*100000000
-        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)
-        atten=atten+context_mask_p
-        atten=nn.Softmax(dim=1)(atten)
-        atten=atten.unsqueeze(1)
-        context_combined=torch.bmm(atten,context).sum(1)
-        output1=self.attlinear1(context_combined)
-        output2=self.attlinear2(target_t)
-        output=nn.Tanh()(output1+output2)
+        atten=torch.bmm(context,target_t.unsqueeze(2)).sum(2)     
+        #atten:batch_size*max_length_s (before sum() it is batch_size*max_length_s*1) ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
+
+        atten=atten+context_mask_p      #batch_size*max_length_s
+        atten=nn.Softmax(dim=1)(atten)      
+        atten=atten.unsqueeze(1)        #batch_size*1*max_length_s
+        context_combined=torch.bmm(atten,context).sum(1)        #batch_size*dimension
+        output1=self.attlinear1(context_combined)       #batch_size*dimension
+        output2=self.attlinear2(target_t)       #batch_size*dimension
+        output=nn.Tanh()(output1+output2)       #batch_size*dimension
         return output
 
 
