@@ -179,19 +179,29 @@ class lstm_target_(nn.Module):
                     speaker_v=self.speaker_embedding(speaker_index)     #batch_size*dimension
                     speaker_v=self.dropout(speaker_v)
                     v=self.linear_v(speaker_v)      #batch_size*(dimension*4)
-                    gates=gates+v
+                    gates=gates+v       #batch_size*(dimension*4)
             else:
                 gates=i2h+h2h
                 
             reshaped_gates = gates.view(-1,4,self.params.dimension)
-            in_gate=nn.Sigmoid()(reshaped_gates[:,0])
-            in_transform= nn.Tanh()(reshaped_gates[:,1])
+            
+            #forget gate
             forget_gate=nn.Sigmoid()(reshaped_gates[:,2])
+            
+            #input gate
+            in_gate=nn.Sigmoid()(reshaped_gates[:,0])
+            #candidate
+            in_transform= nn.Tanh()(reshaped_gates[:,1])
+            
+            #output gate
             out_gate=nn.Sigmoid()(reshaped_gates[:,3])
+            
+            #new candidate
             l1=forget_gate*inputs[ll*2+1]
             l2=in_gate*in_transform
-            
             next_c=l1+l2
+            
+            #new hidden state
             next_h= out_gate*(nn.Tanh()(next_c))
             
             outputs.append(next_h)
