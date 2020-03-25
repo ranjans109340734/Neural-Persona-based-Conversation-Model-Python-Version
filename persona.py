@@ -212,6 +212,7 @@ class lstm_target_(nn.Module):
             
         soft_vector=self.soft_atten(outputs[self.params.layers*2-2],context,source_mask)
         #elements being passed: hidden state of last layer of the current timestamp; context; source_padding
+        #soft_vector: batch_size*dimension
         
         outputs.append(soft_vector)     #Output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector
         return outputs
@@ -223,16 +224,24 @@ class softmax_(nn.Module):
         super(softmax_, self).__init__()
         self.params=params
         self.softlinear=nn.Linear(self.params.dimension,self.params.vocab_target,False)
-        
+    
+    #h: soft_vector(batch_size*dimension); y: truth labels(batch_size) of TARGET words
     def forward(self,h,y):
-        h2y= self.softlinear(h)
-        pred= nn.LogSoftmax(dim=1)(h2y)
+        h2y= self.softlinear(h)     #batch_size*vocab_target
+        pred= nn.LogSoftmax(dim=1)(h2y)     #batch_size*vocab_target; values are between (-inf,0)
+        print(pred.size(), y.size())
+        
         if self.params.use_GPU:
             w=torch.ones(self.params.vocab_target).cuda()
         else:
             w=torch.ones(self.params.vocab_target)
-        w[self.params.vocab_dummy]=0
+        w[self.params.vocab_dummy]=0        #25006 is set to 0
+        
         Criterion=nn.NLLLoss(w,size_average=False,ignore_index=self.params.vocab_dummy)
+        #If the field size_average is set to False, the losses are instead summed for each minibatch
+        #ignore_index (python:int, optional) – Specifies a target value that is ignored and does not contribute to the input gradient
+        #reduction is by deafult true i.e. 'mean': the sum of the output will be divided by the number of elements in the output
+        
         err=Criterion(pred, y)
         return err,pred
 
@@ -363,11 +372,12 @@ class persona:
                     self.lstm_target.eval()
                     
                 output=self.lstm_target(lstm_input)
+                #Output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector: batch_size*dimension
                 
-                current_word=self.Word_t[:,t+1]
+                current_word=self.Word_t[:,t+1]         #(t+1)th timestamp of TARGET words
                 err,pred=self.softmax(output[-1],current_word)
                 sum_err=sum_err+err
-                total_num=total_num+self.Left_t[t+1].size(0)
+                total_num=total_num+self.Left_t[t+1].size(0)        #adding the number of words in the timestamp of target sentences
             if self.mode=="train":
                 sum_err.backward()
             return sum_err.data, total_num
