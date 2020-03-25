@@ -208,7 +208,9 @@ class lstm_target_(nn.Module):
             outputs.append(next_c)
             
         soft_vector=self.soft_atten(outputs[self.params.layers*2-2],context,source_mask)
-        outputs.append(soft_vector)
+        #elements being passed: hidden state of last layer of the current timestamp; context; source_padding
+        
+        outputs.append(soft_vector)     #Output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector
         return outputs
 
 
