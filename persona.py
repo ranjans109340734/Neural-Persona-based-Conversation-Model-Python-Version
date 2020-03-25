@@ -24,9 +24,9 @@ class attention_feed(nn.Module):
         #atten:batch_size*max_length_s (before sum() it is batch_size*max_length_s*1) ;context: batch_size*max_length_s*dimension; target_t: batch_size*dimension*1
 
         atten=atten+context_mask_p      #batch_size*max_length_s
-        atten=nn.Softmax(dim=1)(atten)      
-        atten=atten.unsqueeze(1)
-        context_combined=torch.bmm(atten,context).sum(1)
+        atten=nn.Softmax(dim=1)(atten)      #batch_size*max_length_s
+        atten=atten.unsqueeze(1)        #batch_size*1*max_length_s
+        context_combined=torch.bmm(atten,context).sum(1)        #context_combined: batch_size*dimension (before sum: batch_size*1*dimension)
         return context_combined
 
 class softattention(nn.Module):
