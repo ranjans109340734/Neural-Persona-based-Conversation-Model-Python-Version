@@ -15,10 +15,11 @@ from torch.autograd import Variable, backward
 class decode_model(persona):        #Inheriting from persona
 
     def __init__(self, params):
-        with open(params.decode_path+"/params.pickle", 'rb') as file:       #getting Params pickle file which was saved in persona.train()
+        #getting Params pickle file which was saved in persona.train()
+        with open(params.decode_path+"/params.pickle", 'rb') as file:       
             model_params = pickle.load(file)
             
-    #Copying those parameters from model_params which are not in params
+        #Copying those parameters from model_params which are not in params
         for key in model_params.__dict__:           
             if key not in params.__dict__:
                 params.__dict__[key]=model_params.__dict__[key]
@@ -31,18 +32,18 @@ class decode_model(persona):        #Inheriting from persona
         else:
             print("decoding in non persona mode")
             
-        #Intializing EOT, EOS, beta and params    
-        self.Data=data(self.params)
+        self.Data=data(self.params)     #Intializing EOT, EOS, beta and params 
+        
         self.lstm_source =lstm_source_(self.params)
         self.lstm_target =lstm_target_(self.params)
         self.softmax =softmax_(self.params)
-        
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
             self.lstm_target=self.lstm_target.cuda()
             self.softmax=self.softmax.cuda()
-        self.readModel()    #loading all the 
-        self.ReadDict()
+            
+        self.readModel()    #loading the model(only parameters) of first iteration in training
+        self.ReadDict()     #buidling a dictionary of words, with keys from 0 to len(dictionary.txt)
 
     def sample(self):
         self.model_forward()
@@ -116,11 +117,13 @@ class decode_model(persona):        #Inheriting from persona
 
 
     def decode(self):
-        open_train_file=self.params.train_path+self.params.DecodeFile
+        open_train_file=self.params.train_path+self.params.DecodeFile       #data/testing/test.txt
         speaker_id = self.params.SpeakerID
         if not self.params.PersonaMode:
             speaker_id=0
         output_file=self.params.OutputFolder+"/"+self.params.train_path.split("/")[-1]+"_s"+str(speaker_id)+"_"+self.params.DecodeFile[1:]
+        #outputs/testing_s2_test.txt
+        
         with open(output_file,"w") as open_write_file:
             open_write_file.write("")
         End=0
