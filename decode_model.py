@@ -12,29 +12,36 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable, backward
 
-class decode_model(persona):
+class decode_model(persona):        #Inheriting from persona
 
     def __init__(self, params):
         with open(params.decode_path+"/params.pickle", 'rb') as file:       #getting Params pickle file which was saved in persona.train()
             model_params = pickle.load(file)
-        for key in model_params.__dict__:
+            
+    #Copying those parameters from model_params which are not in params
+        for key in model_params.__dict__:           
             if key not in params.__dict__:
                 params.__dict__[key]=model_params.__dict__[key]
+                
         self.params=params
         self.mode="decoding"
+        
         if self.params.PersonaMode:
             print("decoding in persona mode")
         else:
             print("decoding in non persona mode")
+            
+        #Intializing EOT, EOS, beta and params    
         self.Data=data(self.params)
         self.lstm_source =lstm_source_(self.params)
         self.lstm_target =lstm_target_(self.params)
         self.softmax =softmax_(self.params)
+        
         if self.params.use_GPU:
             self.lstm_source=self.lstm_source.cuda()
             self.lstm_target=self.lstm_target.cuda()
             self.softmax=self.softmax.cuda()
-        self.readModel()
+        self.readModel()    #loading all the 
         self.ReadDict()
 
     def sample(self):
