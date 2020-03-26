@@ -47,10 +47,12 @@ class decode_model(persona):        #Inheriting from persona
 
     def sample(self):
         self.model_forward()
+        
         if self.params.max_length==0:
             batch_max_dec_length=torch.ceil(1.5*self.Word_s.size(1))
         else:
             batch_max_dec_length=self.params.max_length
+            
         completed_history={}
         if self.params.use_GPU:
             beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()
