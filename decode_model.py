@@ -15,7 +15,7 @@ from torch.autograd import Variable, backward
 class decode_model(persona):
 
     def __init__(self, params):
-        with open(params.decode_path+"/params.pickle", 'rb') as file:
+        with open(params.decode_path+"/params.pickle", 'rb') as file:       #save/testing/params.pickle
             model_params = pickle.load(file)
         for key in model_params.__dict__:
             if key not in params.__dict__:
