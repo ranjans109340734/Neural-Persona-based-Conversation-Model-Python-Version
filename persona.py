@@ -383,7 +383,7 @@ class persona:
                 sum_err=sum_err+err
                 total_num=total_num+self.Left_t[t+1].size(0)        #adding the number of words in the timestamp of target sentences
             if self.mode=="train":
-                sum_err.backward()
+                sum_err.backward()      #Computes the sum of gradients of given tensors w.r.t. graph leaves.
             return sum_err.data, total_num
 
     #the function loops over batches of "open_train_file". If both max_length_s and max_length_t are <50, 
@@ -441,7 +441,12 @@ class persona:
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
             for m in list(module.parameters()):
                 m.grad.data = m.grad.data*(1/self.Word_s.size(0))       #dividing by batch_size
-                grad_norm+=m.grad.data.norm()**2
+                #tensor.data gives a tensor that shares the storage with tensor, but doesn't track history,
+                #because weights have requires_grad=True, but we don't need to track this in autograd.
+                
+                grad_norm+=m.grad.data.norm()**2        
+                #norm(): Returns the matrix norm or vector norm of a given tensor. 
+                #Default: Frobenius() [square root of the sum of the absolute squares of its elements]
                 
         grad_norm=grad_norm**0.5        #square-root
         
@@ -450,7 +455,7 @@ class persona:
             
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
             for f in module.parameters():
-                f.data.sub_(f.grad.data * lr)
+                f.data.sub_(f.grad.data * lr)   #inplace computation of (f.data-f.grad.data*lr)
 
     def save(self):
         torch.save(self.lstm_source.state_dict(),self.params.save_prefix+str(self.iter)+"_source.pkl")
