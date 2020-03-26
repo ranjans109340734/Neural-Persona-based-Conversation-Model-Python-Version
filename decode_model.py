@@ -134,12 +134,15 @@ class decode_model(persona):        #Inheriting from persona
             End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseID=self.Data.read_train(open_train_file,batch_n)
             if len(self.Word_s)==0:
                 break
-            n_decode_instance=n_decode_instance+self.Word_s.size(0)
+            n_decode_instance=n_decode_instance+self.Word_s.size(0)     #adding batch_size
+            
             if self.params.max_decoded_num!=0 and n_decode_instance>self.params.max_decoded_num:
                 break
+                
             batch_n=batch_n+1
             self.mode="decoding"
-            self.SpeakerID.fill_(self.params.SpeakerID-1)
+            self.SpeakerID.fill_(self.params.SpeakerID-1)   #SpkeakerID of size batch_size, filled with (SpeakerID-1)
+            
             self.Word_s=Variable(self.Word_s)
             self.Padding_s=Variable(self.Padding_s)
             self.SpeakerID=Variable(self.SpeakerID)
@@ -147,6 +150,7 @@ class decode_model(persona):        #Inheriting from persona
                 self.Word_s=self.Word_s.cuda()
                 self.Padding_s=self.Padding_s.cuda()
                 self.SpeakerID=self.SpeakerID.cuda()
+                
             completed_history=self.sample()
             self.OutPut(output_file,completed_history)
             if End==1:
