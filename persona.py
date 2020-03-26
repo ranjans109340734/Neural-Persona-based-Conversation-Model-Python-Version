@@ -435,15 +435,19 @@ class persona:
                 selfoutput.write("standard perp "+str((1/math.exp(-sum_err_all/total_num_all)))+"\n")
 
     def update(self):
-        lr=self.lr
+        lr=self.lr      #till iter 6 it's 1; after that keep halving it
         grad_norm=0
+        
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
             for m in list(module.parameters()):
-                m.grad.data = m.grad.data*(1/self.Word_s.size(0))
+                m.grad.data = m.grad.data*(1/self.Word_s.size(0))       #dividing by batch_size
                 grad_norm+=m.grad.data.norm()**2
-        grad_norm=grad_norm**0.5
-        if grad_norm>self.params.thres:
+                
+        grad_norm=grad_norm**0.5        #square-root
+        
+        if grad_norm>self.params.thres:     #thres=5
             lr=lr*self.params.thres/grad_norm
+            
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
             for f in module.parameters():
                 f.data.sub_(f.grad.data * lr)
@@ -530,6 +534,7 @@ class persona:
                 train_this_batch=False
                 
                 #if max_length_s and max_length_t are both less than 60
+                #if condition is false, it skips training the current batch
                 if (self.Word_s.size(1)<60 and self.Word_t.size(1)<60):
                     train_this_batch=True
                     
