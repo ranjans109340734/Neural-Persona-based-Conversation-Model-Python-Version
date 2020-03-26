@@ -292,6 +292,7 @@ class persona:
         except:
             pass
     
+    #Builds a dictionary where key varies from 0 tolength of dictionary.txt file and values are unique words
     def ReadDict(self):
         self.dict={}
         dictionary=open(self.params.train_path+self.params.dictPath,"r").readlines()        #data/testing/vocabulary
@@ -456,9 +457,10 @@ class persona:
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
             for f in module.parameters():
                 f.data.sub_(f.grad.data * lr)   #inplace computation of (f.data-f.grad.data*lr)
-
+    
+    #It saves only parameters of the model
     def save(self):
-        #syntax: torch.save(the_model.state_dict(), PATH)
+        #syntax: torch.save(the_model.state_dict(), PATH) 
         #PATH: save/testing/modelx_xxxxx.pkl or save/testing/non_persona/modelx_xxxxx.pkl
         
         torch.save(self.lstm_source.state_dict(),self.params.save_prefix+str(self.iter)+"_source.pkl")
@@ -470,6 +472,7 @@ class persona:
         with open(self.params.save_params_file+".pickle","wb") as file:         # save/testing/params.pickle or save/testing/non_persona/params.pickle
             pickle.dump(self.params,file)
 
+    #This function is called in decode_model class which loads the parameters which is saved in save()
     def readModel(self):
         self.lstm_source.load_state_dict(torch.load(self.params.model_file+"_source.pkl"))
         self.lstm_target.load_state_dict(torch.load(self.params.model_file+"_target.pkl"))
