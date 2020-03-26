@@ -311,6 +311,9 @@ class persona:
         string=string.strip()
         return string
 
+    #it loops over each timestamps of "Word_s". It calls forward() of lstm_source_ in either train or eval mode.
+    #if it's NOT in decoding mode, it loops over timestamps of "Word_t". It calls forward() of lstm_target_ in either train or eval mode.
+    #the output of lstm_target is sent to softmax, to calculate error
     def model_forward(self):
         self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))      #256*maxlength_s*512
         #Word_s: batch_size*max_length
@@ -382,6 +385,8 @@ class persona:
                 sum_err.backward()
             return sum_err.data, total_num
 
+    #the function loops over batches of "open_train_file". If both max_length_s and max_length_t are <50, 
+    #it calls model_forward(), which returns error
     def test(self):
         if self.mode=="test":
             open_train_file=self.params.train_path+self.params.dev_file     # data/testing/valid.txt
@@ -404,8 +409,8 @@ class persona:
             batch_n+=1
             if len(self.Word_s)==0 or End==1:
                 break
+            #if both max_length_s and max_length_t are less than 50
             if (self.Word_s.size(1)<self.params.source_max_length and self.Word_t.size(1)<self.params.target_max_length):
-                # source_max_length=50, target_max_length=50
                 self.mode="test"
                 self.Word_s=Variable(self.Word_s)       #variable wrap Tensor, provides a method to perform backpropagation
                 self.Word_t=Variable(self.Word_t)
@@ -422,6 +427,8 @@ class persona:
                 sum_err_all+=sum_err
                 total_num_all+=total_num
         print("perp "+str((1/math.exp(-sum_err_all/total_num_all))))
+        
+        #printing perplexity value to log file
         if self.output!="":
             with open(self.output,"a") as selfoutput:
                 selfoutput.write("standard perp "+str((1/math.exp(-sum_err_all/total_num_all)))+"\n")
@@ -482,41 +489,62 @@ class persona:
         self.mode="test"
         self.test()
 
+        #till now the code was in "test" mode, input data was from valid.txt, logged into save/testing/log or save/testing/non_persona/log
         while True:
             self.iter+=1
             print("iter  "+str(self.iter))
             
+            #printing iteration number to log file
             if self.output!="":
                 with open(self.output,"a") as selfoutput:
                     selfoutput.write("iter  "+str(self.iter)+"\n")
-            if self.params.start_halve!=-1:
-                if self.iter>self.params.start_halve:
+                    
+            if self.params.start_halve!=-1:         #start_halve=6
+                if self.iter>self.params.start_halve:       #iter>6
                     start_halving=True
+            
             if start_halving:
                 self.lr=self.lr*0.5
-            open_train_file=self.params.train_path+self.params.train_file
+                
+            open_train_file=self.params.train_path+self.params.train_file       #data/testing/train.txt
             End=0
             batch_n=0
             while End==0:
                 self.clear()
                 End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseeID=self.Data.read_train(open_train_file,batch_n)
+                # End: 1, if one of the line in the batch is empty
+                # Word_s and Word_t: tensors, batch_size*max_length
+                # Padding_s, Paddint_t: tensors, batch_size*max_length
+                # Mask_s, Mask_t: dicts, max_length
+                # Left_s, Left_t: dicts, max_length
+                # AddresseeID: str
+                # SpeakerID: tensor of 256 elements, each representing speaker ID number
+                # Source: dict with tensors as its values, wrt addressee
+                # Target: dict with tensors as its values, wrt speaker
+                
                 batch_n+=1
                 if End==1:
                     break
+                    
                 train_this_batch=False
+                
+                #if max_length_s and max_length_t are both less than 60
                 if (self.Word_s.size(1)<60 and self.Word_t.size(1)<60):
                     train_this_batch=True
+                    
                 if train_this_batch:
                     self.mode="train"
                     self.Word_s=Variable(self.Word_s)
                     self.Word_t=Variable(self.Word_t)
                     self.Padding_s=Variable(self.Padding_s)
                     self.SpeakerID=Variable(self.SpeakerID)
+                    
                     if self.params.use_GPU:
                         self.Word_s=self.Word_s.cuda()
                         self.Word_t=self.Word_t.cuda()
                         self.Padding_s=self.Padding_s.cuda()
                         self.SpeakerID=self.SpeakerID.cuda()
+                        
                     self.model_forward()
                     self.update()
             self.mode="test"
