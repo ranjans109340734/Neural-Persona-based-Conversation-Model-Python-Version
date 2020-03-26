@@ -485,6 +485,7 @@ class persona:
         while True:
             self.iter+=1
             print("iter  "+str(self.iter))
+            
             if self.output!="":
                 with open(self.output,"a") as selfoutput:
                     selfoutput.write("iter  "+str(self.iter)+"\n")
