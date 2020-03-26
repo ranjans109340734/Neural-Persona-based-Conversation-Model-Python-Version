@@ -314,6 +314,7 @@ class persona:
     #it loops over each timestamps of "Word_s". It calls forward() of lstm_source_ in either train or eval mode.
     #if it's NOT in decoding mode, it loops over timestamps of "Word_t". It calls forward() of lstm_target_ in either train or eval mode.
     #the output of lstm_target is sent to softmax, to calculate error
+    #if it's in training mode, .backward() is called
     def model_forward(self):
         self.context=Variable(torch.Tensor(self.Word_s.size(0),self.Word_s.size(1),self.params.dimension))      #256*maxlength_s*512
         #Word_s: batch_size*max_length
