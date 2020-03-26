@@ -57,7 +57,7 @@ class decode_model(persona):        #Inheriting from persona
             
         completed_history={}
         if self.params.use_GPU:
-            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()      #batch_size*batch_max_dec_length
+            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()      #batch_size*batch_max_dec_length, filled with ones
         else:
             beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long()
             
@@ -104,7 +104,7 @@ class decode_model(persona):        #Inheriting from persona
                 #multinomial probability distribution located in the corresponding row of tensor input
                 
                 if self.params.use_GPU:
-                    next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0).cuda()
+                    next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0).cuda()      #batch_size*1
                 else:
                     next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0)
                     
@@ -115,27 +115,29 @@ class decode_model(persona):        #Inheriting from persona
             else:
                 next_words=torch.max(prob,dim=1)[1]
                 
-            end_boolean_index=torch.eq(next_words,self.Data.EOT)
+            end_boolean_index=torch.eq(next_words,self.Data.EOT)    #batch_size*1
+            #Computes element-wise equality
+            #The second argument can be a number or a tensor whose shape is broadcastable with the first argument.
             
             if self.params.use_GPU:
                 end_boolean_index=end_boolean_index.cuda()
                 
             if end_boolean_index.sum()!=0:
-                for i in range(end_boolean_index.size(0)):
-                    if end_boolean_index[i][0]==1:
+                for i in range(end_boolean_index.size(0)):      #batch_size
+                    if end_boolean_index[i][0]==1:      #where the sentence has ended
                         example_index=i
                         if example_index not in completed_history:
                             if t!=0:
                                 completed_history[example_index]=beamHistory[example_index,:t]
                             else:
                                 if self.params.use_GPU:
-                                    completed_history[example_index]=torch.Tensor(1,1).fill_(0).cuda()
+                                    completed_history[example_index]=torch.Tensor(1,1).fill_(0).cuda()      #1*1
                                 else:
                                     completed_history[example_index]=torch.Tensor(1,1).fill_(0)
                                     
             beamHistory[:,t]=next_words.view(-1)
             
-        for i in range(self.Word_s.size(0)):
+        for i in range(self.Word_s.size(0)):        #batch_size
             if i not in completed_history:
                 completed_history[i]=beamHistory[i,:]
         return completed_history
