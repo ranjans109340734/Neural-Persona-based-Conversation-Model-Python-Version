@@ -129,6 +129,7 @@ class decode_model(persona):        #Inheriting from persona
         End=0
         batch_n=0
         n_decode_instance=0
+        
         while End==0:
             End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseID=self.Data.read_train(open_train_file,batch_n)
             if len(self.Word_s)==0:
