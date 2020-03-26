@@ -458,6 +458,7 @@ class persona:
                 f.data.sub_(f.grad.data * lr)   #inplace computation of (f.data-f.grad.data*lr)
 
     def save(self):
+        #syntax: torch.save(the_model.state_dict(), PATH)
         torch.save(self.lstm_source.state_dict(),self.params.save_prefix+str(self.iter)+"_source.pkl")
         torch.save(self.lstm_target.state_dict(),self.params.save_prefix+str(self.iter)+"_target.pkl")
         torch.save(self.softmax.state_dict(),self.params.save_prefix+str(self.iter)+"_softmax.pkl")
