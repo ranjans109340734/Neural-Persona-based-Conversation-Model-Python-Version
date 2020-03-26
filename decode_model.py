@@ -6,6 +6,7 @@ import string
 import numpy as np
 import pickle
 import linecache
+import math
 
 import torch
 import torch.nn as nn
@@ -49,56 +50,76 @@ class decode_model(persona):        #Inheriting from persona
         self.model_forward()
         
         if self.params.max_length==0:
-            batch_max_dec_length=torch.ceil(1.5*self.Word_s.size(1))
+            #batch_max_dec_length=torch.ceil(1.5*self.Word_s.size(1))
+            batch_max_dec_length=math.ceil(1.5*self.Word_s.size(1))
         else:
             batch_max_dec_length=self.params.max_length
             
         completed_history={}
         if self.params.use_GPU:
-            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()
+            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()      #batch_size*batch_max_dec_length
         else:
             beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long()
+            
+        #for each timestamp
         for t in range(batch_max_dec_length):
-            lstm_input=self.last
+            lstm_input=self.last        #8 elements: 4h's, 4c's of last timestamp of LSTM source run with test data
             lstm_input.append(self.context)
+            
             if t==0:
                 if self.params.use_GPU:
                     lstm_input.append(Variable(torch.LongTensor(self.Word_s.size(0)).fill_(self.Data.EOS).cuda()))
+                    #size: batch_size, filled with 25008
                 else:
                     lstm_input.append(torch.LongTensor(self.Word_s.size(0)).fill_(self.Data.EOS))
             else:
                 lstm_input.append(Variable(beamHistory[:,t-1]))
+                
             lstm_input.append(self.Padding_s)
             if self.params.PersonaMode:
                 lstm_input.append(self.SpeakerID)
-            self.lstm_target.eval()
-            output=self.lstm_target(lstm_input)
-            self.last=output[:-1]
+                
+            self.lstm_target.eval()     #setting eval mode
+            output=self.lstm_target(lstm_input)     #output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector
+            self.last=output[:-1]   #8 elements
+            
             if self.params.use_GPU:
                 err,pred=self.softmax(output[-1],Variable(torch.LongTensor(output[-1].size(0)).fill_(1).cuda()))
             else:
                 err,pred=self.softmax(output[-1],torch.LongTensor(output[-1].size(0)).fill_(1))
+                
             prob=pred.data
             prob=torch.exp(prob)
-            if not self.params.allowUNK:
+            
+            if not self.params.allowUNK:    #if unknown words are not allowed
                 prob[:,0].fill_(0)
+                
             if self.params.setting=="StochasticGreedy":
                 select_P,select_words=torch.topk(prob,self.params.StochasticGreedyNum,1,True,True)
+                #Returns the k largest elements of the given input tensor along a given dimension.
                 prob=F.normalize(select_P, 1, dim=1)
+                #Performs Lp normalization of inputs over specified dimension. dim=1: Euclidean norm
                 next_words_index=torch.multinomial(prob, 1)
+                #Returns a tensor where each row contains 'num_samples' indices sampled from the 
+                #multinomial probability distribution located in the corresponding row of tensor input
+                
                 if self.params.use_GPU:
                     next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0).cuda()
                 else:
                     next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0)
+                    
                 for i in range(self.Word_s.size(0)):
                     next_words[i][0]=select_words[i][next_words_index[i][0]]
             elif self.params.setting=="sample":
                 next_words=torch.multinomial(prob, 1)
             else:
                 next_words=torch.max(prob,dim=1)[1]
+                
             end_boolean_index=torch.eq(next_words,self.Data.EOT)
+            
             if self.params.use_GPU:
                 end_boolean_index=end_boolean_index.cuda()
+                
             if end_boolean_index.sum()!=0:
                 for i in range(end_boolean_index.size(0)):
                     if end_boolean_index[i][0]==1:
@@ -111,7 +132,9 @@ class decode_model(persona):        #Inheriting from persona
                                     completed_history[example_index]=torch.Tensor(1,1).fill_(0).cuda()
                                 else:
                                     completed_history[example_index]=torch.Tensor(1,1).fill_(0)
+                                    
             beamHistory[:,t]=next_words.view(-1)
+            
         for i in range(self.Word_s.size(0)):
             if i not in completed_history:
                 completed_history[i]=beamHistory[i,:]
