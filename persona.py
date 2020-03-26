@@ -459,7 +459,7 @@ class persona:
 
     def save(self):
         #syntax: torch.save(the_model.state_dict(), PATH)
-        #PATH: save/testing/model_x_xxxxx.pkl or save/testing/non_persona/model_x_xxxxx.pkl
+        #PATH: save/testing/modelx_xxxxx.pkl or save/testing/non_persona/modelx_xxxxx.pkl
         
         torch.save(self.lstm_source.state_dict(),self.params.save_prefix+str(self.iter)+"_source.pkl")
         torch.save(self.lstm_target.state_dict(),self.params.save_prefix+str(self.iter)+"_target.pkl")
