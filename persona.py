@@ -515,7 +515,10 @@ class persona:
             End=0
             batch_n=0
             while End==0:
-                self.clear()
+                self.clear()        
+                #Since the backward() function accumulates gradients, and we don’t want to mix up gradients between minibatches, 
+                #we have to zero them out at the start of a new minibatch.
+                
                 End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t,self.Source,self.Target,self.SpeakerID,self.AddresseeID=self.Data.read_train(open_train_file,batch_n)
                 # End: 1, if one of the line in the batch is empty
                 # Word_s and Word_t: tensors, batch_size*max_length
