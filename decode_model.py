@@ -185,11 +185,11 @@ class decode_model(persona):        #Inheriting from persona
         print("decoding done")
 
     def OutPut(self,output_file,completed_history):
-        for i in range(self.Word_s.size(0)):
+        for i in range(self.Word_s.size(0)):    #batch_size
             if self.params.output_source_target_side_by_side:
-                print_string=self.IndexToWord(self.Source[i].view(-1))
+                print_string=self.IndexToWord(self.Source[i].view(-1))      #source
                 print_string=print_string+"|"
-                print_string=print_string+self.IndexToWord(completed_history[i].view(-1))
+                print_string=print_string+self.IndexToWord(completed_history[i].view(-1))       #target
                 with open(output_file,"a") as file:
                     file.write(print_string+"\n")
             else:
