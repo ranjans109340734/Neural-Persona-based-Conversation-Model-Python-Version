@@ -229,7 +229,6 @@ class softmax_(nn.Module):
     def forward(self,h,y):
         h2y= self.softlinear(h)     #batch_size*vocab_target
         pred= nn.LogSoftmax(dim=1)(h2y)     #batch_size*vocab_target; values are between (-inf,0)
-        print(pred.size(), y.size())
         
         if self.params.use_GPU:
             w=torch.ones(self.params.vocab_target).cuda()
