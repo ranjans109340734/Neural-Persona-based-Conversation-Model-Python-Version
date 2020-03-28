@@ -51,13 +51,14 @@ class decode_model(persona):        #Inheriting from persona
         
         if self.params.max_length==0:
             #batch_max_dec_length=torch.ceil(1.5*self.Word_s.size(1))
-            batch_max_dec_length=math.ceil(1.5*self.Word_s.size(1))
+            batch_max_dec_length=math.ceil(1.5*self.Word_s.size(1))         #Word_s.size(1) = max_length_s
         else:
             batch_max_dec_length=self.params.max_length
             
         completed_history={}
         if self.params.use_GPU:
-            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()      #batch_size*batch_max_dec_length, filled with ones
+            beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long().cuda()      
+            # batch_size*batch_max_dec_length, filled with ones
         else:
             beamHistory=torch.ones(self.Word_s.size(0),batch_max_dec_length).long()
             
@@ -78,11 +79,14 @@ class decode_model(persona):        #Inheriting from persona
             lstm_input.append(self.Padding_s)
             if self.params.PersonaMode:
                 lstm_input.append(self.SpeakerID)
-                
+            
+            #lstm_input has 10/11 elements
+            
             self.lstm_target.eval()     #setting eval mode
             output=self.lstm_target(lstm_input)     #output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector
             self.last=output[:-1]   #8 elements
             
+            #pred: batch_size*vocab_target; values are between (-inf,0)
             if self.params.use_GPU:
                 err,pred=self.softmax(output[-1],Variable(torch.LongTensor(output[-1].size(0)).fill_(1).cuda()))
             else:
@@ -91,13 +95,15 @@ class decode_model(persona):        #Inheriting from persona
             prob=pred.data
             prob=torch.exp(prob)
             
-            if not self.params.allowUNK:    #if unknown words are not allowed
+            #if unknown words are not allowed, fill 1st column is filled with zero
+            if not self.params.allowUNK:    
                 prob[:,0].fill_(0)
                 
             if self.params.setting=="StochasticGreedy":
                 select_P,select_words=torch.topk(prob,self.params.StochasticGreedyNum,1,True,True)
-                #Returns the k largest elements of the given input tensor along a given dimension.
-                prob=F.normalize(select_P, 1, dim=1)
+                #topk: Returns the k largest elements of the given input tensor along a given dimension. (here k=1)
+                #A namedtuple of (values, indices) is returned, where the indices are the indices of the elements in the original input tensor
+                prob=F.normalize(select_P, 1, dim=1) 
                 #Performs Lp normalization of inputs over specified dimension. dim=1: Euclidean norm
                 next_words_index=torch.multinomial(prob, 1)
                 #Returns a tensor where each row contains 'num_samples' indices sampled from the 
