@@ -46,9 +46,11 @@ class decode_model(persona):        #Inheriting from persona
         self.readModel()    #loading the model(only parameters) of first iteration in training
         self.ReadDict()     #buidling a dictionary of words, with keys from 0 to len(dictionary.txt)
 
+        
     def sample(self):
         self.model_forward()
         
+        #setting max length of output: 1.5*max_length_s
         if self.params.max_length==0:
             #batch_max_dec_length=torch.ceil(1.5*self.Word_s.size(1))
             batch_max_dec_length=math.ceil(1.5*self.Word_s.size(1))         #Word_s.size(1) = max_length_s
@@ -64,7 +66,7 @@ class decode_model(persona):        #Inheriting from persona
             
         #for each timestamp
         for t in range(batch_max_dec_length):
-            lstm_input=self.last        #8 elements: 4h's, 4c's of last timestamp of LSTM source run with test data
+            lstm_input=self.last        #8 elements: 4h's, 4c's of last timestamp of LSTM source run with TEST DATA
             lstm_input.append(self.context)
             
             if t==0:
@@ -80,7 +82,7 @@ class decode_model(persona):        #Inheriting from persona
             if self.params.PersonaMode:
                 lstm_input.append(self.SpeakerID)
             
-            #lstm_input has 10/11 elements
+            #lstm_input has 11 elements (if PersonaMode is True)
             
             self.lstm_target.eval()     #setting eval mode
             output=self.lstm_target(lstm_input)     #output has 9 elements: 8 elements of current timestamp(4 h's, 4 c's); soft_vector
@@ -89,23 +91,26 @@ class decode_model(persona):        #Inheriting from persona
             #pred: batch_size*vocab_target; values are between (-inf,0)
             if self.params.use_GPU:
                 err,pred=self.softmax(output[-1],Variable(torch.LongTensor(output[-1].size(0)).fill_(1).cuda()))
+                # 2nd part of softmax does not matter, as pred is based on only output[-1] i.e. soft_vector
             else:
                 err,pred=self.softmax(output[-1],torch.LongTensor(output[-1].size(0)).fill_(1))
                 
             prob=pred.data
-            prob=torch.exp(prob)
+            prob=torch.exp(prob)        #batch_size*vocab_target
             
-            #if unknown words are not allowed, fill 1st column is filled with zero
+            #if unknown words are not allowed, 1st column is filled with zero
             if not self.params.allowUNK:    
                 prob[:,0].fill_(0)
                 
+            #when 'StochasticGreedy' = 1, we choose the word with highest probability for each sample
+            #next_words has, for each sample, the index of the word with highest probability
             if self.params.setting=="StochasticGreedy":
-                select_P,select_words=torch.topk(prob,self.params.StochasticGreedyNum,1,True,True)
+                select_P,select_words=torch.topk(prob,self.params.StochasticGreedyNum,1,True,True)      #both: batch_size*k
                 #topk: Returns the k largest elements of the given input tensor along a given dimension. (here k=1)
                 #A namedtuple of (values, indices) is returned, where the indices are the indices of the elements in the original input tensor
-                prob=F.normalize(select_P, 1, dim=1) 
+                prob=F.normalize(select_P, 1, dim=1)        #batch_size*k
                 #Performs Lp normalization of inputs over specified dimension. dim=1: Euclidean norm
-                next_words_index=torch.multinomial(prob, 1)
+                next_words_index=torch.multinomial(prob, 1)     #batch_size*1
                 #Returns a tensor where each row contains 'num_samples' indices sampled from the 
                 #multinomial probability distribution located in the corresponding row of tensor input
                 
@@ -114,13 +119,14 @@ class decode_model(persona):        #Inheriting from persona
                 else:
                     next_words=torch.Tensor(self.Word_s.size(0),1).fill_(0)
                     
-                for i in range(self.Word_s.size(0)):
+                for i in range(self.Word_s.size(0)):        #batch_size
                     next_words[i][0]=select_words[i][next_words_index[i][0]]
             elif self.params.setting=="sample":
                 next_words=torch.multinomial(prob, 1)
             else:
                 next_words=torch.max(prob,dim=1)[1]
                 
+            #assigning 1 for those samples which has reached END
             end_boolean_index=torch.eq(next_words,self.Data.EOT)    #batch_size*1
             #Computes element-wise equality
             #The second argument can be a number or a tensor whose shape is broadcastable with the first argument.
@@ -128,21 +134,23 @@ class decode_model(persona):        #Inheriting from persona
             if self.params.use_GPU:
                 end_boolean_index=end_boolean_index.cuda()
                 
+            #if atleast one of the sample has reached END
             if end_boolean_index.sum()!=0:
                 for i in range(end_boolean_index.size(0)):      #batch_size
-                    if end_boolean_index[i][0]==1:      #where the sentence has ended
-                        example_index=i
+                    if end_boolean_index[i][0]==1:      
+                        example_index=i     #index of the sample which has reached END
                         if example_index not in completed_history:
                             if t!=0:
-                                completed_history[example_index]=beamHistory[example_index,:t]
+                                completed_history[example_index]=beamHistory[example_index,:t]      #storing the predicted sentence
                             else:
                                 if self.params.use_GPU:
-                                    completed_history[example_index]=torch.Tensor(1,1).fill_(0).cuda()      #1*1
+                                    completed_history[example_index]=torch.Tensor(1,1).fill_(0).cuda()      
                                 else:
                                     completed_history[example_index]=torch.Tensor(1,1).fill_(0)
                                     
             beamHistory[:,t]=next_words.view(-1)
             
+        #for samples which could not finish within 'batch_max_dec_length', just take first 'batch_max_dec_length' predicted words
         for i in range(self.Word_s.size(0)):        #batch_size
             if i not in completed_history:
                 completed_history[i]=beamHistory[i,:]
