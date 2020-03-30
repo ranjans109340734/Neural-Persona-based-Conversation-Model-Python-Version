@@ -182,7 +182,6 @@ class lstm_target_(nn.Module):
                     speaker_v=self.speaker_embedding(speaker_index)     #batch_size*dimension
                     speaker_v=self.dropout(speaker_v)
                     v=self.linear_v(speaker_v)      #batch_size*(dimension*4)
-                    print(v)
                     gates=gates+v       #batch_size*(dimension*4)
             else:
                 gates=i2h+h2h
@@ -418,6 +417,7 @@ class persona:
                 self.Word_t=Variable(self.Word_t)
                 self.Padding_s=Variable(self.Padding_s)
                 self.SpeakerID=Variable(self.SpeakerID)
+                print(self.Word_s.requires_grad)
 
                 if self.params.use_GPU:
                     self.Word_s=self.Word_s.cuda()
