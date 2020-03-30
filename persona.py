@@ -439,6 +439,7 @@ class persona:
         grad_norm=0
         
         for module in [self.lstm_source,self.lstm_target,self.softmax]:
+            print(module)
             for m in list(module.parameters()):
                 m.grad.data = m.grad.data*(1/self.Word_s.size(0))       #dividing by batch_size
                 #tensor.data gives a tensor that shares the storage with tensor, but doesn't track history,
