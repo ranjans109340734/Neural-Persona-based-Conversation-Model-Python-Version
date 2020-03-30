@@ -566,7 +566,7 @@ class persona:
                         
                     self.model_forward()
                     self.update()
-                    print(self.speaker_embedding)
+                    print(self.speaker_embedding(self.SpeakerID))
             self.mode="test"
             self.test()
             if self.params.saveModel:
