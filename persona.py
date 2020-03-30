@@ -182,6 +182,7 @@ class lstm_target_(nn.Module):
                     speaker_v=self.speaker_embedding(speaker_index)     #batch_size*dimension
                     speaker_v=self.dropout(speaker_v)
                     v=self.linear_v(speaker_v)      #batch_size*(dimension*4)
+                    print(v)
                     gates=gates+v       #batch_size*(dimension*4)
             else:
                 gates=i2h+h2h
@@ -566,7 +567,6 @@ class persona:
                         
                     self.model_forward()
                     self.update()
-                    print(self.speaker_embedding(self.SpeakerID))
             self.mode="test"
             self.test()
             if self.params.saveModel:
