@@ -381,7 +381,7 @@ class persona:
                 current_word=self.Word_t[:,t+1]         #(t+1)th timestamp of TARGET words
                 err,pred=self.softmax(output[-1],current_word)
                 sum_err=sum_err+err
-                total_num=total_num+self.Left_t[t+1].size(0)        #adding the number of words in the timestamp of target sentences
+                total_num=total_num+self.Left_t[t+1].size(0)        #adding the number of words in the timestamp of target sentence
             if self.mode=="train":
                 sum_err.backward()      #Computes the sum of gradients of given tensors w.r.t. graph leaves.
             return sum_err.data, total_num
@@ -566,6 +566,7 @@ class persona:
                         
                     self.model_forward()
                     self.update()
+                    print(self.speaker_embedding)
             self.mode="test"
             self.test()
             if self.params.saveModel:
