@@ -2,7 +2,7 @@ class decode_params:
 	def __init__(self):
 		self.beam_size=7
 		self.batch_size=256
-		self.SpeakerID=2
+		self.SpeakerID=866
 		self.decode_path="save/testing"
 		self.model_file=self.decode_path+"/model1"
 		self.DecodeFile="/test.txt"
