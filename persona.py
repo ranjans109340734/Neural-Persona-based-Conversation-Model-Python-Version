@@ -180,7 +180,6 @@ class lstm_target_(nn.Module):
                 if self.params.PersonaMode:
                     speaker_index=inputs[self.params.layers*2+3]
                     speaker_v=self.speaker_embedding(speaker_index)     #batch_size*dimension
-                    print(speaker_v)
                     speaker_v=self.dropout(speaker_v)
                     v=self.linear_v(speaker_v)      #batch_size*(dimension*4)
                     gates=gates+v       #batch_size*(dimension*4)
