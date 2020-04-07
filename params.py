@@ -6,7 +6,7 @@ class params:
 		self.max_iter=10
 		self.layers=4
 		self.SpeakerNum=2
-		self.PersonaMode=True
+		self.PersonaMode=False
 		
 		self.train_path="data/testing"
 		self.train_file="/train.txt"
